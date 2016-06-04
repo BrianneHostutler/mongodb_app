@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var logger = require('morgan');
+var cheerio = require('cheerio');
 
 app.use(logger('dev'));
 app.use(bodyParser.urlencoded({
