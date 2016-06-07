@@ -45,13 +45,83 @@ app.get('/scrape', function(req, res) {
             console.log(err);
           } else {
             console.log(saved);
+            var textDiv = $('<div>');
+            textDiv.addClass('textStyling');
+            textDiv.append(saved);
+            $('#text').prepend(textDiv);
           }
         });
       }
     });
   });
   res.send("Scrape Complete");
+
 });
+
+// ============================================================
+
+//Find One in DB
+app.get('/find/:id', function(req, res){
+
+    //when searching by an id, the id needs to be passed in as (mongojs.ObjectId(IDYOUWANTTOFIND))
+    console.log(req.params.id);
+    db.notes.findOne({
+        '_id': mongojs.ObjectId(req.params.id)
+    }, function(err, found){
+        if (err) {
+            console.log(err);
+            res.send(err);
+        } else {
+            console.log(found);
+            res.send(found);
+        }
+    });
+});
+
+
+//Update One in the DB
+app.post('/update/:id', function(req, res) {
+    //when searching by an id, the id needs to be passed in as (mongojs.ObjectId(IDYOUWANTTOFIND))
+
+//updating with req.body info based on ID
+	db.notes.update({
+    '_id': mongojs.ObjectId(req.params.id)
+  }, {
+    $set: {
+            'title': req.body.title,
+      'note': req.body.note,
+            'modified': Date.now()
+    }
+  }, function(err, edited) {
+    if (err) {
+      console.log(err);
+            res.send(err);
+    } else {
+      console.log(edited);
+            res.send(edited);
+    }
+  });
+});
+
+
+//Delete One from the DB
+app.get('/delete/:id', function(req, res) {
+  db.notes.remove({
+    "_id": req.params.id
+  }, function(err, removed) {
+    if (err) {
+      console.log(err);
+            res.send(err);
+    } else {
+      console.log(removed);
+      res.send(removed);
+    }
+  });
+});
+
+
+
+
 
 
 app.listen(3000, function() {
