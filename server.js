@@ -1,48 +1,59 @@
 var express = require('express');
 var app = express();
-var bodyParser = require('body-parser');
-var logger = require('morgan');
+var request = require('request');
 var cheerio = require('cheerio');
-
-app.use(logger('dev'));
-app.use(bodyParser.urlencoded({
-    extended: false
-}));
-app.use(express.static('public'));
 
 //Database configuration
 var mongojs = require('mongojs');
-var databaseUrl = "hwScraping";
-var collections = ["scrapData"];
+var databaseUrl = "scraper";
+var collections = ["scrapedData"];
 var db = mongojs(databaseUrl, collections);
 db.on('error', function(err) {
   console.log('Database Error:', err);
 });
 
+
 // Routes
 app.get('/', function(req, res) {
-  res.send(index.html);
+  res.send("Hello world");
 });
 
-//Save to DB
-app.post('/submit', function(req, res) {
-  console.log(req.body);
-  db.notes.save(req.body, function(err, saved) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(saved);
-    }
-  });
-});
-
-//Get from DB  all the data and renders them to json
+//Get from DB
 app.get('/all', function(req, res) {
-  db.notes.find({}, function(err, found) {
+  db.scrapedData.find({}, function(err, found) {
     if (err) {
       console.log(err);
     } else {
       res.json(found);
     }
   });
+});
+
+app.get('/scrape', function(req, res) {
+  request('https://www.reddit.com/r/webdev', function(error, response, html) {
+    var $ = cheerio.load(html);
+    $('.title').each(function(i, element) {
+      var title = $(this).children('a').text();
+      var link = $(this).children('a').attr('href');
+
+      if (title && link) {
+        db.scrapedData.save({ //or use db.scrapedData.insert
+          title: title,
+          link: link
+        }, function(err, saved) {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log(saved);
+          }
+        });
+      }
+    });
+  });
+  res.send("Scrape Complete");
+});
+
+
+app.listen(3000, function() {
+  console.log('App running on port 3000!');
 });
