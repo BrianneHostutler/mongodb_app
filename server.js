@@ -13,7 +13,6 @@ app.use(bodyParser.urlencoded({
 app.use(express.static('public'));
 
 
-
 //Database configuration
 mongoose.connect('mongodb://localhost/mongoosescraper');
 var db = mongoose.connection;
@@ -37,9 +36,9 @@ app.get('/', function(req, res) {
 
 
 app.get('/scrape', function(req, res) {
-  request('http://www.nytimes.com/pages/politics/index.html?action=click&pgtype=Homepage&region=TopBar&module=HPMiniNav&contentCollection=Politics&WT.nav=page', function(error, response, html) {
+  request('https://www.reddit.com/r/webdev', function(error, response, html) {
     var $ = cheerio.load(html);
-    $('article h2').each(function(i, element) {
+    $('p.title').each(function(i, element) {
 
 				var result = {};
 
