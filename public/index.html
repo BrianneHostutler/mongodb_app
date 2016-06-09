@@ -7,28 +7,37 @@
     body{
       background-color: teal;
     }
+    h1{
+      margin-left: 20px;
+    }
     #wrapper{
       width:960px;
       margin: 0 auto;
       padding-top: 5%;
     }
     #articles{
-      width:60%;
-      height:700px;
+      width:50%;
+      height:50%;
       display: block;
-      overflow: auto;
       background-color: white;
       padding:10px;
       margin: 15px;
+
     }
     #notes{
       width:30%;
-
+      
+      height:50%;
+      margin: 15px;
+    }
+    button{
+      margin: 15px;
     }
     textarea, input{
       display:block;
       width:100%;
-      background-color: #FCF5C7;
+      background-color: white;
+
     }
     input{
       height:36px;
@@ -43,11 +52,17 @@
 <body>
   <div id="wrapper">
     <h1>Scraper</h1>
-    <button id="save">Save</button>
-    <button id="clear">Clear</button>
+    <!-- <button id="save">Save</button>
+    <button id="clear">Clear</button> -->
+      <div id="notes">
+          <textarea></textarea>
 
-    <div id="articles"></div>
-    <div id="notes"></div>
+          <button id="saave">Save</button>
+          <button id = "clear">Clear</button>
+      </div>
+      <div id="articles">
+      </div>
+
 
   </div>
   <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
