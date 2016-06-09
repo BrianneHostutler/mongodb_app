@@ -1,129 +1,115 @@
 var express = require('express');
 var app = express();
+var bodyParser = require('body-parser');
+var logger = require('morgan');
+var mongoose = require('mongoose');
 var request = require('request');
 var cheerio = require('cheerio');
 
+app.use(logger('dev'));
+app.use(bodyParser.urlencoded({
+	extended: false
+}));
+app.use(express.static('public'));
+
+
+
 //Database configuration
-var mongojs = require('mongojs');
-var databaseUrl = "scraper";
-var collections = ["scrapedData"];
-var db = mongojs(databaseUrl, collections);
-db.on('error', function(err) {
-  console.log('Database Error:', err);
+mongoose.connect('mongodb://localhost/mongoosescraper');
+var db = mongoose.connection;
+
+db.on('error', function (err) {
+console.log('Mongoose Error: ', err);
 });
+db.once('open', function () {
+console.log('Mongoose connection successful.');
+});
+
+//Require Schemas
+var Note = require('./models/Note.js');
+var Article = require('./models/Article.js');
 
 
 // Routes
 app.get('/', function(req, res) {
-  res.send("Hello world");
+  res.send(index.html);
 });
 
-//Get from DB
-app.get('/all', function(req, res) {
-  db.scrapedData.find({}, function(err, found) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(found);
-    }
-  });
-});
 
 app.get('/scrape', function(req, res) {
-  request('https://www.reddit.com/r/webdev', function(error, response, html) {
+  request('http://www.nytimes.com/pages/politics/index.html?action=click&pgtype=Homepage&region=TopBar&module=HPMiniNav&contentCollection=Politics&WT.nav=page', function(error, response, html) {
     var $ = cheerio.load(html);
-    $('.title').each(function(i, element) {
-      var title = $(this).children('a').text();
-      var link = $(this).children('a').attr('href');
+    $('article h2').each(function(i, element) {
 
-      if (title && link) {
-        db.scrapedData.save({ //or use db.scrapedData.insert
-          title: title,
-          link: link
-        }, function(err, saved) {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log(saved);
-            var textDiv = $('<div>');
-            textDiv.addClass('textStyling');
-            textDiv.append(saved);
-            $('#text').prepend(textDiv);
-          }
-        });
-      }
+				var result = {};
+
+				result.title = $(this).children('a').text();
+				result.link = $(this).children('a').attr('href');
+
+				var entry = new Article (result);
+
+				entry.save(function(err, doc) {
+				  if (err) {
+				    console.log(err);
+				  } else {
+				    console.log(doc);
+
+				  }
+				});
+
+
     });
   });
   res.send("Scrape Complete");
-
-});
-
-// ============================================================
-
-//Find One in DB
-app.get('/find/:id', function(req, res){
-
-    //when searching by an id, the id needs to be passed in as (mongojs.ObjectId(IDYOUWANTTOFIND))
-    console.log(req.params.id);
-    db.notes.findOne({
-        '_id': mongojs.ObjectId(req.params.id)
-    }, function(err, found){
-        if (err) {
-            console.log(err);
-            res.send(err);
-        } else {
-            console.log(found);
-            res.send(found);
-        }
-    });
 });
 
 
-//Update One in the DB
-app.post('/update/:id', function(req, res) {
-    //when searching by an id, the id needs to be passed in as (mongojs.ObjectId(IDYOUWANTTOFIND))
-
-//updating with req.body info based on ID
-	db.notes.update({
-    '_id': mongojs.ObjectId(req.params.id)
-  }, {
-    $set: {
-            'title': req.body.title,
-      'note': req.body.note,
-            'modified': Date.now()
-    }
-  }, function(err, edited) {
-    if (err) {
-      console.log(err);
-            res.send(err);
-    } else {
-      console.log(edited);
-            res.send(edited);
-    }
-  });
+app.get('/articles', function(req, res){
+	Article.find({}, function(err, doc){
+		if (err){
+			console.log(err);
+		} else {
+			res.json(doc);
+		}
+	});
 });
 
 
-//Delete One from the DB
-app.get('/delete/:id', function(req, res) {
-  db.notes.remove({
-    "_id": req.params.id
-  }, function(err, removed) {
-    if (err) {
-      console.log(err);
-            res.send(err);
-    } else {
-      console.log(removed);
-      res.send(removed);
-    }
-  });
+app.get('/articles/:id', function(req, res){
+	Article.findOne({'_id': req.params.id})
+	.populate('note')
+	.exec(function(err, doc){
+		if (err){
+			console.log(err);
+		} else {
+			res.json(doc);
+		}
+	});
+});
+
+
+app.post('/articles/:id', function(req, res){
+	var newNote = new Note(req.body);
+
+	newNote.save(function(err, doc){
+		if(err){
+			console.log(err);
+		} else {
+			Article.findOneAndUpdate({'_id': req.params.id}, {'note':doc._id})
+			.exec(function(err, doc){
+				if (err){
+					console.log(err);
+				} else {
+					res.send(doc);
+				}
+			});
+
+		}
+	});
 });
 
 
 
-
-
-
-app.listen(3000, function() {
-  console.log('App running on port 3000!');
+app.listen(3006, function() {
+  console.log('App running on port 3006!');
 });

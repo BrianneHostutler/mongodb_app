@@ -2,13 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Mongo</title>
-  <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+  <title>Scraper</title>
+  <style>
+    body{
+      background-color: teal;
+    }
+    #wrapper{
+      width:960px;
+      margin: 0 auto;
+      padding-top: 5%;
+    }
+    #articles{
+      width:60%;
+      height:700px;
+      display: block;
+      overflow: auto;
+      background-color: white;
+      padding:10px;
+      margin: 15px;
+    }
+    #notes{
+      width:30%;
+
+    }
+    textarea, input{
+      display:block;
+      width:100%;
+      background-color: #FCF5C7;
+    }
+    input{
+      height:36px;
+      font-size: 24px;
+    }
+    textarea{
+      height:200px;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
-  <p>hi</p>
-  <div id ="text"></div>
-</body>
+  <div id="wrapper">
+    <h1>Scraper</h1>
+    <button id="save">Save</button>
+    <button id="clear">Clear</button>
 
-<script src="../server.js"></script>
+    <div id="articles"></div>
+    <div id="notes"></div>
+
+  </div>
+  <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+  <script src="script.js"></script>
+</body>
 </html>
